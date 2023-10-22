@@ -1,78 +1,95 @@
 <template>
-    <modal :show="modelValue" max-width="sm">
+    <modal :show="modelValue" @show="onShow" max-width="sm">
         <div class="p-6">
-            <div class="flex flex-1 items-center justify-center">
-                <h2 class="font-medium text-gray-900 text-xl">Create New Folder</h2>
-                <button
-                    class="absolute top-0 mt-2 right-0 mr-2 bg-transparent hover:bg-red-500 text-red-700 font-semibold hover:text-white border border-red-500 hover:border-transparent rounded"
-                    @click.prevent="cancelProcess">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-7 h-7">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
+            <h2 class="text-lg font-medium text-gray-900">
+                Create New Folder
+            </h2>
+            <div class="mt-6">
+                <InputLabel for="folderName" value="Folder Name" class="sr-only"/>
+
+                <TextInput type="text"
+                           ref="folderNameInput"
+                           id="folderName" v-model="form.name"
+                           class="mt-1 block w-full"
+                           :class="form.errors.name ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''"
+                           placeholder="Folder Name"
+                           @keyup.enter="createFolder"
+                />
+                <InputError :message="form.errors.name" class="mt-2"/>
 
             </div>
-            <div class="mt-6">
-                <InputLabel for="folderName" value="Folder Name" class="font-semibold text-xl pb-2 sr-only"/>
-                <TextInput type="text" v-model="form.name" placeholder="Type It Here..." id="folderName"
-                           class="w-full flex flex-1" ref="folderNameInput"
-                           :class="form.errors.name ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''"
-                           @keyup.enter="createFolder" @keyup.esc="cancelProcess"/>
-                <InputError :message="form.errors.name" class="mt-1" v-if="form.errors"/>
-                <div class="flex flex-1 justify-end">
-                    <PrimaryButton type="submit" class="mt-3" :class="{'opacity-25': form.processing}" @click.prevent="createFolder" :disable="form.processing">Save</PrimaryButton>
-                </div>
+            <div class="mt-6 flex justify-end">
+                <SecondaryButton @click="closeModal">Cancel</SecondaryButton>
+                <PrimaryButton class="ml-3"
+                               :class="{ 'opacity-25': form.processing }"
+                               @click="createFolder" :disable="form.processing">
+                    Submit
+                </PrimaryButton>
             </div>
         </div>
     </modal>
 </template>
 
-<script setup lang="ts">
-
-import Modal from "../Modal.vue";
-import InputLabel from "../InputLabel.vue";
+<script setup>
+// Imports
 import TextInput from "../TextInput.vue";
-import PrimaryButton from "../PrimaryButton.vue";
-import {useForm} from "@inertiajs/vue3";
 import InputError from "../InputError.vue";
-import {ref} from "vue";
+import InputLabel from "../InputLabel.vue";
+import {useForm, usePage} from "@inertiajs/vue3";
+import SecondaryButton from "../SecondaryButton.vue";
+import PrimaryButton from "../PrimaryButton.vue";
+import {nextTick, ref} from "vue";
+import Modal from "../Modal.vue";
 
+// Uses
+const form = useForm({
+    name: '',
+    parent_id: null,
+})
+
+const page = usePage()
+// Refs
+const folderNameInput = ref(null)
+
+// Props & Emit
 const {modelValue} = defineProps({
     modelValue: Boolean
 })
-
-
 const emit = defineEmits(['update:modelValue'])
 
-const form = useForm({
-    name: '',
-    errors: {
-        name: ''
-    }
-});
-const formNameInput = ref(null);
+// Computed
+
+// Methods
+function onShow() {
+    nextTick(() => folderNameInput.value.focus())
+}
 
 function createFolder() {
+    form.parent_id = page.props.folder.id;
     form.post(route('folder.create'), {
         preserveScroll: true,
         onSuccess: () => {
-            cancelProcess()
-
-            //need to add success notification
+            closeModal()
+            // Show success notification
+            form.reset();
         },
-        onError: () => {
-            formNameInput.value.focus()
+
+        onError: (error) => {
+            console.log(error)
         }
+
     })
 }
 
-function cancelProcess() {
+function closeModal() {
     emit('update:modelValue')
-    form.clearErrors()
+    form.clearErrors();
     form.reset()
 }
 
+// Hooks
 </script>
+
 <style scoped>
 
 </style>

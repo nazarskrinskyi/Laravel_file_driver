@@ -22,8 +22,10 @@ watch(
     () => props.show,
     () => {
         if (props.show) {
+            emit('show')
             document.body.style.overflow = 'hidden';
         } else {
+            emit('hide')
             document.body.style.overflow = null;
         }
     }

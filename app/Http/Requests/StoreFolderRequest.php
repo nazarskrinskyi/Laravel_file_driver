@@ -3,17 +3,15 @@
 namespace App\Http\Requests;
 
 use App\Models\File;
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
 class StoreFolderRequest extends ParentIdBaseRequest
 {
-
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array|string>
      */
     public function rules(): array
     {
@@ -21,12 +19,11 @@ class StoreFolderRequest extends ParentIdBaseRequest
             [
                 'name' => [
                     'required',
-                    'string',
                     Rule::unique(File::class, 'name')
                         ->where('created_by', Auth::id())
                         ->where('parent_id', $this->parent_id)
-                        ->where('deleted_at')
-                ],
+                        ->whereNull('deleted_at'),
+                ]
             ]
         );
     }
@@ -34,7 +31,7 @@ class StoreFolderRequest extends ParentIdBaseRequest
     public function messages()
     {
         return [
-            'name.unique' => 'Folder ":input" already exists!'
+            'name.unique' => 'Folder ":input" already exists'
         ];
     }
 }
