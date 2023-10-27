@@ -7,15 +7,23 @@
 </template>
 
 <script setup>
-
+//imports
 import TextInput from "../TextInput.vue";
 import {useForm} from "@inertiajs/vue3";
 
+
+//refs
+
+//props & emits
 const form = useForm({
     search: '',
 })
 
+//methods
 
+//computed
+
+// hooks
 </script>
 
 

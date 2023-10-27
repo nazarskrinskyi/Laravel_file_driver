@@ -60,9 +60,18 @@
 </template>
 
 <script setup>
+//imports
 import {Menu, MenuButton, MenuItems, MenuItem} from '@headlessui/vue'
 import {ChevronDownIcon} from '@heroicons/vue/20/solid'
 import ResponsiveNavLink from "../ResponsiveNavLink.vue";
 
+//refs
 
+//props & emits
+
+//methods
+
+//computed
+
+// hooks
 </script>

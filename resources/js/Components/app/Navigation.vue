@@ -1,9 +1,3 @@
-<script setup lang="ts">
-
-import NavLink from "../NavLink.vue";
-import ApplicationLogo from "../ApplicationLogo.vue";
-import CreateNewDropdown from "./CreateNewDropdown.vue";
-</script>
 
 <template>
     <nav class="min-w-[200px]">
@@ -53,6 +47,24 @@ import CreateNewDropdown from "./CreateNewDropdown.vue";
         </div>
     </nav>
 </template>
+
+
+<script setup lang="ts">
+//imports
+import NavLink from "../NavLink.vue";
+import ApplicationLogo from "../ApplicationLogo.vue";
+import CreateNewDropdown from "./CreateNewDropdown.vue";
+
+//refs
+
+//props & emits
+
+//methods
+
+//computed
+
+// hooks
+</script>
 
 <style scoped>
 

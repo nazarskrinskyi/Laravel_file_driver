@@ -28,11 +28,13 @@ Route::get('/', function () {
 
 
 
+
 Route::group(['middleware' => ['auth', 'verified']], function () {
     Route::get('/my-files/{folder?}', [FileController::class, 'myFiles'])
         ->where('folder', '.*')
         ->name('myFiles');
     Route::post('/folder/create', [FileController::class, 'createFolder'])->name('folder.create');
+    Route::post('/file', [FileController::class, 'storeFile'])->name('file.store');
 });
 
 
