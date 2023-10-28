@@ -29,7 +29,6 @@
         <table class="min-w-full">
             <thead class="border border-b-black">
             <tr>
-                <th class="font-semibold border border-r-black border-b-black">#</th>
                 <th class="font-semibold border border-r-black border-b-black">Name</th>
                 <th class="font-semibold border border-r-black border-b-black">Owner</th>
                 <th class="font-semibold border border-r-black border-b-black">Size</th>
@@ -40,8 +39,8 @@
             <tbody>
             <tr v-for="file in files.data" :class="file.is_folder === 1 ? 'bg-amber-300' : ''" @dblclick.prevent="openFolder(file)"
                 class="cursor-pointer transition duration-300 ease-in-out hover:bg-gray-300" :key="file.id">
-                <td class="font-medium border border-r-black  border-b-black py-2 text-center">{{ file.id }}</td>
-                <td class="p-2 font-medium border border-r-black  border-b-black">{{ file.name }}</td>
+
+                <td class="cursor-pointer p-2 font-medium border border-r-black  border-b-black"><span class="flex items-center"><FileIcon :file="file" class="pl-3"/><span class="pl-4">{{ file.name }}</span></span></td>
                 <td class="p-2 font-medium border border-r-black  border-b-black">{{ file.owner }}</td>
                 <td class="p-2 font-medium border border-r-black  border-b-black">{{ file.size }}</td>
                 <td class="p-2 font-medium border border-r-black  border-b-black">{{ file.updated_at }}</td>
@@ -61,6 +60,8 @@ import AuthenticatedLayout from "../Layouts/AuthenticatedLayout.vue";
 import {router} from "@inertiajs/vue3";
 import {Link} from "@inertiajs/vue3";
 import {computed} from "vue";
+import FileIcon from "../Components/app/FileIcon.vue";
+import {f} from "../../../public/build/assets/app-ebc2819d.js";
 //refs
 
 //props & emits

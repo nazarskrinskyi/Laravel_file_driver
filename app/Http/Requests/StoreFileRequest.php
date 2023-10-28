@@ -8,14 +8,6 @@ use Illuminate\Support\Facades\Auth;
 
 class StoreFileRequest extends ParentIdBaseRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
-    {
-        return true;
-    }
-
 
     // function that detect folders name and paths to files
     protected function prepareForValidation(): void
@@ -54,7 +46,6 @@ class StoreFileRequest extends ParentIdBaseRequest
     {
 
         $paths = array_slice($paths, 0, count($files));
-
 
         $node_tree = [];
 

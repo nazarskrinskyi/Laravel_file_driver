@@ -46,52 +46,49 @@ class FileController extends Controller
     public function storeFile(StoreFileRequest $request): void
     {
         $data = $request->validated();
+        $file_tree = $request->file_tree;
         $parent = $request->parent;
-        $user = $request->user();
-        $fileTree = $request->file_tree;
+        $user_id = Auth::id();
 
         if (!$parent) {
             $parent = $this->getRoot();
         }
-
-        if (!empty($fileTree)) {
-            $this->saveFileTree($fileTree, $parent, $user);
+        if (!empty($file_tree)) {
+            $this->saveFileTree($file_tree, $parent, $user_id);
         } else {
             foreach ($data['files'] as $file) {
-                /** @var \Illuminate\Http\UploadedFile $file */
-
-                $this->saveFileAndAppendToNodeTree($file, $user, $parent);
+                $this->saveFileAndAppendToNodeTree($file, $user_id, $parent);
             }
         }
     }
 
-    #[NoReturn] private function saveFileAndAppendToNodeTree($file, $user, File $parent): void
+    #[NoReturn] private function saveFileAndAppendToNodeTree($file, int $user_id, File $parent): void
     {
-        $path = $file->store('/files/' . $user->id, 'local');
+        $path = $file->store('/files/'. $user_id);
 
         $model = new File();
-        $model->storage_path = $path;
         $model->is_folder = false;
+        $model->storage_path = $path;
         $model->name = $file->getClientOriginalName();
-        $model->mime = $file->getMimeType();
         $model->size = $file->getSize();
+        $model->mime = $file->getMimeType();
 
         $parent->appendNode($model);
     }
 
-    private function saveFileTree(array $file_tree, File $parent, $user): void
+    private function saveFileTree(array $file_tree, File $parent, int $user_id): void
     {
         foreach ($file_tree as $name => $file) {
-            if (is_array($file)) {
+            if (is_array($file)){
                 $folder = new File();
                 $folder->is_folder = 1;
                 $folder->name = $name;
 
                 $parent->appendNode($folder);
-                $this->saveFileTree($file, $folder, $user);
-            } else {
-
-                $this->saveFileAndAppendToNodeTree($file, $user, $parent);
+                $this->saveFileTree($file, $folder, $user_id);
+            }
+            else {
+                $this->saveFileAndAppendToNodeTree($file, $user_id, $parent);
             }
         }
     }
