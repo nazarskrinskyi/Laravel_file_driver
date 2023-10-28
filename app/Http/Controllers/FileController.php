@@ -6,8 +6,10 @@ use App\Http\Requests\StoreFileRequest;
 use App\Http\Requests\StoreFolderRequest;
 use App\Http\Resources\FileResource;
 use App\Models\File;
+use GuzzleHttp\Psr7\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
+use JetBrains\PhpStorm\NoReturn;
 
 class FileController extends Controller
 {
@@ -34,7 +36,6 @@ class FileController extends Controller
 
         // correctly passing files by resource
         $files = FileResource::collection($files);
-
         // it's Node nested set package feature (in docs)
         // like here I am getting ancestors dirs of current dir until the root
         $ancestors = FileResource::collection([...$folder->ancestors, $folder]);
@@ -42,10 +43,57 @@ class FileController extends Controller
         return Inertia::render('MyFiles', compact('files', 'folder', 'ancestors'));
     }
 
-    public function storeFile(StoreFileRequest $request) {
+    public function storeFile(StoreFileRequest $request): void
+    {
         $data = $request->validated();
+        $parent = $request->parent;
+        $user = $request->user();
+        $fileTree = $request->file_tree;
 
-        //dd($data);
+        if (!$parent) {
+            $parent = $this->getRoot();
+        }
+
+        if (!empty($fileTree)) {
+            $this->saveFileTree($fileTree, $parent, $user);
+        } else {
+            foreach ($data['files'] as $file) {
+                /** @var \Illuminate\Http\UploadedFile $file */
+
+                $this->saveFileAndAppendToNodeTree($file, $user, $parent);
+            }
+        }
+    }
+
+    #[NoReturn] private function saveFileAndAppendToNodeTree($file, $user, File $parent): void
+    {
+        $path = $file->store('/files/' . $user->id, 'local');
+
+        $model = new File();
+        $model->storage_path = $path;
+        $model->is_folder = false;
+        $model->name = $file->getClientOriginalName();
+        $model->mime = $file->getMimeType();
+        $model->size = $file->getSize();
+
+        $parent->appendNode($model);
+    }
+
+    private function saveFileTree(array $file_tree, File $parent, $user): void
+    {
+        foreach ($file_tree as $name => $file) {
+            if (is_array($file)) {
+                $folder = new File();
+                $folder->is_folder = 1;
+                $folder->name = $name;
+
+                $parent->appendNode($folder);
+                $this->saveFileTree($file, $folder, $user);
+            } else {
+
+                $this->saveFileAndAppendToNodeTree($file, $user, $parent);
+            }
+        }
     }
     public function createFolder(StoreFolderRequest $request): void
     {

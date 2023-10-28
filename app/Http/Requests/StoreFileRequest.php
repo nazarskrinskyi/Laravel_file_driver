@@ -17,6 +17,7 @@ class StoreFileRequest extends ParentIdBaseRequest
     }
 
 
+    // function that detect folders name and paths to files
     protected function prepareForValidation(): void
     {
         $paths = array_filter($this->relative_paths ?? [], fn($file) => $file != null);
@@ -27,6 +28,16 @@ class StoreFileRequest extends ParentIdBaseRequest
         ]);
     }
 
+    // function that detect folders name and paths to files
+    protected function passedValidation(): void
+    {
+        $data = $this->validated();
+        $this->replace([
+            'file_tree' => $this->buildFileTree($this->file_paths, $data['files'])
+        ]);
+    }
+
+    // function that gets main folder name
     private function detectFolderName(array $paths): ?string
     {
         if (!$paths) {
@@ -35,6 +46,42 @@ class StoreFileRequest extends ParentIdBaseRequest
 
         $parts = explode('/', $paths[0]);
         return $parts[0];
+    }
+
+    // function that save folder existence inside another folders
+    // And creates folder/file hierarchy
+    private function buildFileTree(array $paths, array $files)
+    {
+
+        $paths = array_slice($paths, 0, count($files));
+
+
+        $node_tree = [];
+
+        foreach ($paths as $key => $path) {
+            // here we are breaking into array our folders and files
+            $parts = explode('/', $path);
+
+            // creating reference on our tree that will allow us to move in hierarchy tree
+            $tree = &$node_tree;
+
+            foreach ($parts as $i => $part) {
+                // here we assign folder as key in array
+                if (!isset($tree[$part])) {
+                    $tree[$part] = [];
+                }
+                // here we finding last element in the path (file)
+                // here we stopping and passing to current part(directory) this file
+                if ($i === count($parts) - 1) {
+                    $tree[$part] = $files[$key];
+                } else {
+                    // here if it's not file then we going back and doing process again
+                    $tree = &$tree[$part];
+                }
+            }
+        }
+
+        return $node_tree;
     }
 
     /**
@@ -48,6 +95,7 @@ class StoreFileRequest extends ParentIdBaseRequest
             'files.*' => [
                 'required',
                 'file',
+                // callback func that check file existence before upload
                 function ($attribute, $value, $fail) {
                     if (!$this->folder_name) {
                         /** @var $value UploadedFile */
@@ -66,6 +114,7 @@ class StoreFileRequest extends ParentIdBaseRequest
             'folder_name' => [
                 'nullable',
                 'string',
+                // callback func that check folder existence before upload
                 function ($attribute, $value, $fail) {
                     if ($value) {
                         /** @var $value UploadedFile */

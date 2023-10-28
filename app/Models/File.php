@@ -19,6 +19,8 @@ class File extends Model
     protected $table = 'files';
     protected $guarded = false;
 
+
+
     public function isOwnedBy($userId): bool
     {
         return $this->created_by == $userId;
@@ -40,7 +42,7 @@ class File extends Model
         return $this->belongsTo(File::class, 'parent_id');
     }
 
-    public static function boot()
+    public static function boot(): void
     {
         parent::boot();
 
@@ -51,7 +53,7 @@ class File extends Model
         });
     }
 
-    public function isRoot()
+    public function isRoot(): bool
     {
         return $this->parent_id === null;
     }

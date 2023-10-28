@@ -46,10 +46,7 @@ import {emitter, FILE_UPLOAD_STARTED} from "../event-mitt.js";
 import {useForm, usePage} from "@inertiajs/vue3";
 
 
-//refs
-const dragOver = ref(false)
-
-//props & emits
+// Uses
 const page = usePage();
 const fileUploadForm = useForm({
     files: [],
@@ -57,37 +54,45 @@ const fileUploadForm = useForm({
     parent_id: null
 })
 
-//methods
-function handleDrop(event) {
-    dragOver.value = false;
-    const files = event.dataTransfer.files;
-    if (files.length) {
-        return;
-    }
-    uploadFiles(files)
+// Refs
+const dragOver = ref(false);
+
+// Props & Emit
+
+// Computed
+
+
+// Methods
+function onDragOver() {
+    dragOver.value = true;
 }
 
 function onDragLeave() {
     dragOver.value = false;
 }
 
-function onDragOver() {
-    dragOver.value = true;
+function handleDrop(event) {
+    console.log(event)
+    dragOver.value = false;
+    const files = event.dataTransfer.files;
+    console.log(files)
+
+
+    uploadFiles(files);
 }
 
 function uploadFiles(files) {
-    console.log(files)
+    console.log(files);
+
     fileUploadForm.parent_id = page.props.folder.id;
     fileUploadForm.files = files;
-    console.log(fileUploadForm.files)
     fileUploadForm.relative_paths = [...files].map(file => file.webkitRelativePath);
-    console.log(fileUploadForm)
-    fileUploadForm.post(route('file.store'),{
-        onSuccess: () => {
-            console.log('success')
-        },
-        onError: (error) => {
-            console.log(error);
+
+    fileUploadForm.post(route('file.store'), {
+
+        onFinish: () => {
+            fileUploadForm.clearErrors();
+            fileUploadForm.reset();
         }
     })
 }
@@ -96,6 +101,7 @@ function uploadFiles(files) {
 
 // hooks
 onMounted(() => {
-    emitter.on(FILE_UPLOAD_STARTED, uploadFiles)
+    emitter.on(FILE_UPLOAD_STARTED, uploadFiles);
 })
+
 </script>

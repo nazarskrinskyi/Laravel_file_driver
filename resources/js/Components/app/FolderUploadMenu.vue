@@ -11,7 +11,7 @@
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 8.25H7.5a2.25 2.25 0 00-2.25 2.25v9a2.25 2.25 0 002.25 2.25h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25H15m0-3l-3-3m0 0l-3 3m3-3V15" />
             </svg>
-            <input @change="onChange" class="absolute top-0 left-0 right-0 bottom-0 w-full opacity-0 cursor-pointer" type="file" webkitdirectory multiple>
+            <input @change="onChange" class="absolute top-0 left-0 right-0 bottom-0 w-full opacity-0 cursor-pointer" type="file" webkitdirectory directory multiple>
             Upload Folder
         </button>
     </MenuItem>
@@ -34,6 +34,8 @@ function onChange(event)
 //computed
 
 // hooks
+// Hooks
+
 </script>
 
 <style scoped>
