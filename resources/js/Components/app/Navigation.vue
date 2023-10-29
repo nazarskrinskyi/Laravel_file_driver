@@ -1,6 +1,6 @@
 
 <template>
-    <nav class="min-w-[200px]">
+    <nav class="sidebar min-w-[200px]">
         <div class="h-[80px] px-3 flex items-center gap-4">
             <NavLink href="/">
                 <ApplicationLogo class="block h-10 w-auto fill-current text-gray-800"/>

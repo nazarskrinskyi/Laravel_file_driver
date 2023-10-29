@@ -32,7 +32,7 @@ class FileController extends Controller
             ->where('deleted_at', '=',null)
             ->orderBy('is_folder', 'desc')
             ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->paginate(40);
 
         // correctly passing files by resource
         $files = FileResource::collection($files);
