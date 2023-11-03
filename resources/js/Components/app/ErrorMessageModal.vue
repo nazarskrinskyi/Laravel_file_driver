@@ -1,6 +1,4 @@
 
-
-
 <template>
     <Modal :show="show" max-width="md">
         <div class="p-6">

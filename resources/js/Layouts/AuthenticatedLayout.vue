@@ -22,7 +22,7 @@
             </template>
         </main>
     </div>
-    <ErrorMessage/>
+    <ErrorMessageModal/>
     <ProgressBar :form="fileUploadForm"/>
 </template>
 
@@ -48,7 +48,7 @@ import {onMounted, ref} from "vue";
 import {emitter, FILE_UPLOAD_STARTED, showErrorMessage,} from "../event-mitt.js";
 import {useForm, usePage} from "@inertiajs/vue3";
 import ProgressBar from "../Components/app/ProgressBar.vue";
-import ErrorMessage from "../Components/app/ErrorMessage.vue";
+import ErrorMessageModal from "../Components/app/ErrorMessageModal.vue";
 
 
 // Uses
