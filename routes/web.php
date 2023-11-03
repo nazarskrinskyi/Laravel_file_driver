@@ -34,11 +34,9 @@ Route::group(['middleware' => ['auth', 'verified']], function () {
         ->where('folder', '.*')
         ->name('myFiles');
     Route::post('/folder/create', [FileController::class, 'createFolder'])->name('folder.create');
-    Route::post('/file', [FileController::class, 'storeFile'])->name('file.store');
+    Route::post('/file', [FileController::class, 'store'])->name('file.store');
+    Route::delete('/file', [FileController::class, 'destroy'])->name('file.delete');
 });
-
-
-
 
 
 

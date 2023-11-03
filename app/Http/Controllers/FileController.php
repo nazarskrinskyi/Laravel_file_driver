@@ -2,18 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\DestroyFilesRequest;
 use App\Http\Requests\StoreFileRequest;
 use App\Http\Requests\StoreFolderRequest;
 use App\Http\Resources\FileResource;
 use App\Models\File;
-use GuzzleHttp\Psr7\UploadedFile;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use JetBrains\PhpStorm\NoReturn;
 
 class FileController extends Controller
 {
-    public function myFiles(string $folder = null): \Inertia\Response
+    public function myFiles(Request $request, string $folder = null): \Inertia\Response|ResourceCollection
     {
         // check if we are inside some dir not it the root
         if ($folder){
@@ -31,11 +34,15 @@ class FileController extends Controller
             ->where('created_by', '=', Auth::id())
             ->where('deleted_at', '=',null)
             ->orderBy('is_folder', 'desc')
-            ->orderBy('created_at', 'desc')
-            ->paginate(40);
+            ->orderBy('id', 'desc')
+            ->paginate(20);
 
         // correctly passing files by resource
         $files = FileResource::collection($files);
+
+        if ($request->wantsJson()) {
+            return $files;
+        }
         // it's Node nested set package feature (in docs)
         // like here I am getting ancestors dirs of current dir until the root
         $ancestors = FileResource::collection([...$folder->ancestors, $folder]);
@@ -43,7 +50,7 @@ class FileController extends Controller
         return Inertia::render('MyFiles', compact('files', 'folder', 'ancestors'));
     }
 
-    public function storeFile(StoreFileRequest $request): void
+    public function store(StoreFileRequest $request): void
     {
         $data = $request->validated();
         $file_tree = $request->file_tree;
@@ -62,7 +69,7 @@ class FileController extends Controller
         }
     }
 
-    #[NoReturn] private function saveFileAndAppendToNodeTree($file, int $user_id, File $parent): void
+    private function saveFileAndAppendToNodeTree($file, int $user_id, File $parent): void
     {
         $path = $file->store('/files/'. $user_id);
 
@@ -118,5 +125,27 @@ class FileController extends Controller
     {
         // just getting this single root in db (parent_id === null)
        return File::query()->whereIsRoot()->where('created_by', Auth::id())->firstOrFail();
+    }
+
+    public function destroy(DestroyFilesRequest $request): \Illuminate\Http\RedirectResponse
+    {
+        $data   = $request->validated();
+        $parent = $request->parent;
+
+        if ($data['all']) {
+            $children = $parent->children;
+
+            foreach ($children as $child) {
+                $child->delete();
+            }
+        }
+        else {
+            foreach ($data['ids'] ?? [] as $id) {
+                $file = File::find($id);
+                $file->delete();
+            }
+        }
+
+        return to_route('myFiles', ['folder' => $parent->path]);
     }
 }

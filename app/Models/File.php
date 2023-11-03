@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Kalnoy\Nestedset\NodeTrait;
 
@@ -20,7 +21,6 @@ class File extends Model
     protected $guarded = false;
 
 
-
     public function isOwnedBy($userId): bool
     {
         return $this->created_by == $userId;
@@ -30,9 +30,10 @@ class File extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+
     public function owner(): Attribute
     {
-        return Attribute::make(get: function (){
+        return Attribute::make(get: function () {
             return $this->attributes['created_by'] === Auth::id() ? 'me' : $this->user->name;
         });
     }
@@ -55,11 +56,32 @@ class File extends Model
     {
         parent::boot();
 
-        static::creating(function ($model){
+        static::creating(function ($model) {
             if (!$model->parent) return;
 
             $model->path = (!$model->parent->isRoot() ? $model->parent->path . '/' : '') . Str::slug($model->name);
         });
+
+        static::deleted(function (File $model) {
+            if (!$model->is_folder) {
+                Storage::delete($model->storage_path);
+            } else {
+
+            }
+        });
+    }
+
+    private function deleteFolder(File $model): void
+    {
+        $children = File::all()->where('parent_id', $model->id);
+        foreach ($children as $child) {
+            if (!$child->is_folder) {
+                Storage::delete($child->storage_path);
+            }
+            else {
+                $this->deleteFolder($child);
+            }
+        }
     }
 
     public function isRoot(): bool
