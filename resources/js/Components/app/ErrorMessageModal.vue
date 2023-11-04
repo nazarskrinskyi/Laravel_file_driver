@@ -5,7 +5,7 @@
             <h2 class="mb-2 text-xl text-red-500 font-semibold">Error</h2>
             <p>{{message}}</p>
             <div class="flex justify-end">
-                <PrimaryButton @click="close">OK</PrimaryButton>
+                <PrimaryButton @click="close" @keyup.enter="close">OK</PrimaryButton>
             </div>
         </div>
     </Modal>

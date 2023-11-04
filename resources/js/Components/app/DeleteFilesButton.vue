@@ -8,14 +8,33 @@
         </svg>
         Delete
     </button>
+    <ConfirmationModal :show="showDeleteDialog"
+                       message="Are you sure you want to delete selected files?"
+                       @cancel="onDeleteCancel"
+                       @confirm="onDeleteConfirm">
+
+    </ConfirmationModal>
 </template>
 
-<script setup lang="ts">
-//imports
+<script setup>
+// Imports
+import {ref} from "vue";
+import {useForm, usePage} from "@inertiajs/vue3";
+import ConfirmationModal from "./ConfirmationModal.vue";
+import {showErrorMessage, showSuccessNotification} from "../../event-mitt.js";
 
-//refs
+// Uses
+const page = usePage();
+const deleteFilesForm = useForm({
+    all: null,
+    ids: [],
+    parent_id: null
+});
+// Refs
+const showDeleteDialog = ref(false)
 
-//props & emits
+// Props & Emit
+
 const props = defineProps({
     deleteAll: {
         type: Boolean,
@@ -27,20 +46,47 @@ const props = defineProps({
         required: false
     }
 })
-
 const emit = defineEmits(['delete'])
 
-//methods
+// Computed
+
+// Methods
+
 function onDeleteClick() {
-    console.log(props.deleteIds)
-    console.log(props.deleteAll)
+    if (!props.deleteIds.length && !props.deleteAll) {
+        showErrorMessage("You didn't selected any files or folders");
+        return;
+    }
+    showDeleteDialog.value = true;
 }
 
-//computed
+function onDeleteCancel() {
+    showDeleteDialog.value = false;
+}
 
-// hooks
+function onDeleteConfirm() {
+    deleteFilesForm.parent_id = page.props.folder.id;
+    if (props.deleteAll) deleteFilesForm.all = true;
+    else deleteFilesForm.ids = props.deleteIds;
+    console.log("Delete", props.deleteAll, props.deleteIds);
+    deleteFilesForm.delete(route('file.delete'), {
+        onSuccess: () => {
+            showDeleteDialog.value = false;
+            deleteFilesForm.reset();
+            showSuccessNotification("You successfully deleted " + props.deleteIds.length + ' files')
+        },
+        onError: error => {
+            showErrorMessage(error)
+        }
+    })
+}
+
+// Hooks
+
 </script>
 
 <style scoped>
 
 </style>
+
+

@@ -26,8 +26,9 @@
                     </div>
                 </li>
             </ol>
-            <div class="flex mb-3 justify-end mr-8">
-                <DeleteFilesButton :delete-all="allSelected" :delete-ids="selectedIds"/>
+            <div class="flex mb-3 justify-end mr-8 pt-1">
+                <DownloadFilesButton :all="allSelected" :ids="selectedIds" />
+                <DeleteFilesButton :delete-all="allSelected" :delete-ids="selectedIds" @delete="onDelete"/>
             </div>
         </nav>
         <div class="flex-1 overflow-auto">
@@ -86,6 +87,7 @@ import {computed, onMounted, onUpdated, ref} from "vue";
 import {httpGet} from "../Helper/http-helper.js";
 import Checkbox from "../Components/Checkbox.vue";
 import DeleteFilesButton from "../Components/app/DeleteFilesButton.vue";
+import DownloadFilesButton from "../Components/app/DownloadFilesButton.vue";
 
 //refs
 const allSelected = ref(false)
@@ -206,12 +208,18 @@ function openFolder(file) {
     router.visit(route('myFiles', {folder: file.path}))
 }
 
+function onDelete() {
+    selected.value = {};
+    allSelected.value = false;
+}
+
 //computed
 const selectedIds = computed(() => {
     return Object.keys(selected.value).filter(fileId => selected.value[fileId]);
 });
 
 // hooks
+
 onUpdated(() => {
     allFiles.value = {
         data: props.files.data,

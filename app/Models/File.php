@@ -13,6 +13,18 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Kalnoy\Nestedset\NodeTrait;
 
+/**
+ * @property bool $is_folder
+ * @property int $created_by
+ * @property User $user
+ * @property string $storage_path
+ * @property mixed $size
+ * @property int $parent_id
+ * @property int $id
+ * @property string $name
+ * @property mixed $mime
+ * @method static find(mixed $parentId)
+ */
 class File extends Model
 {
     use HasFactory, HasCreatorAndUpdater, NodeTrait, SoftDeletes;
@@ -49,7 +61,7 @@ class File extends Model
 
         $power = $this->size > 0 ? floor(log($this->size, 1024)) : 0;
 
-        return number_format($this->size / pow(1024, $power), 2, '.', ',') . $units[$power];
+        return number_format($this->size / pow(1024, $power), 2) . $units[$power];
     }
 
     public static function boot(): void
@@ -65,8 +77,6 @@ class File extends Model
         static::deleted(function (File $model) {
             if (!$model->is_folder) {
                 Storage::delete($model->storage_path);
-            } else {
-
             }
         });
     }

@@ -3,9 +3,16 @@
 namespace App\Http\Requests;
 
 use App\Models\File;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 
+/**
+ * @property mixed $file_tree
+ * @property array $file_paths
+ * @property string $folder_name
+ * @property int $parent_id
+ */
 class StoreFileRequest extends ParentIdBaseRequest
 {
 
@@ -61,12 +68,12 @@ class StoreFileRequest extends ParentIdBaseRequest
                 if (!isset($tree[$part])) {
                     $tree[$part] = [];
                 }
-                // here we finding last element in the path (file)
-                // here we stopping and passing to current part(directory) this file
+                // here we're finding last element in the path (file)
+                // here we're stopping and passing to current part(directory) this file
                 if ($i === count($parts) - 1) {
                     $tree[$part] = $files[$key];
                 } else {
-                    // here if it's not file then we going back and doing process again
+                    // here if it's not file then we're going back and doing process again
                     $tree = &$tree[$part];
                 }
             }
@@ -78,7 +85,7 @@ class StoreFileRequest extends ParentIdBaseRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array|string>
      */
     public function rules(): array
     {
