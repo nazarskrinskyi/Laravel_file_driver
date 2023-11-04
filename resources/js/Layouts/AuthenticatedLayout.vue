@@ -23,6 +23,7 @@
         </main>
     </div>
     <ErrorMessageModal/>
+    <Notification />
     <ProgressBar :form="fileUploadForm"/>
 </template>
 
@@ -49,6 +50,8 @@ import {emitter, FILE_UPLOAD_STARTED, showErrorMessage,} from "../event-mitt.js"
 import {useForm, usePage} from "@inertiajs/vue3";
 import ProgressBar from "../Components/app/ProgressBar.vue";
 import ErrorMessageModal from "../Components/app/ErrorMessageModal.vue";
+import ConfirmationModal from "../Components/app/ConfirmationModal.vue";
+import Notification from "../Components/app/Notification.vue";
 
 
 // Uses
@@ -80,14 +83,11 @@ function handleDrop(event) {
     console.log(event)
     dragOver.value = false;
     const files = event.dataTransfer.files;
-    console.log(files)
-
 
     uploadFiles(files);
 }
 
 function uploadFiles(files) {
-    console.log(files);
 
     fileUploadForm.parent_id = page.props.folder.id;
     fileUploadForm.files = files;
@@ -101,16 +101,13 @@ function uploadFiles(files) {
         },
 
         onError: errors => {
-            console.log(errors)
             let message = '';
-            console.log(Object.keys(errors))
             if (Object.keys(errors)) {
                 message = errors[Object.keys(errors)[0]]
                 console.log(message)
             } else {
                 message = 'There is an Error during upload! Try again later.'
             }
-            console.log(message);
             showErrorMessage(message);
         }
     })
