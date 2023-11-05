@@ -69,7 +69,8 @@ function download()
             file.download = res.file_name;
             file.href = res.url;
             file.click();
-            showSuccessNotification('You successfully downloaded ' + props.ids.length + ' files')
+            showSuccessNotification('You successfully downloaded ' + props.ids.length + ' files');
+            props.ids = [];
         })
         .catch(error => {
             showErrorMessage(error);

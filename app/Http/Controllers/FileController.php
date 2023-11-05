@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\FilesActionRequest;
 use App\Http\Requests\StoreFileRequest;
 use App\Http\Requests\StoreFolderRequest;
+use App\Http\Requests\TrashFilesRequest;
 use App\Http\Resources\FileResource;
 use App\Models\File;
 use Illuminate\Http\RedirectResponse;
@@ -50,6 +51,44 @@ class FileController extends Controller
         $ancestors = FileResource::collection([...$folder->ancestors, $folder]);
 
         return Inertia::render('MyFiles', compact('files', 'folder', 'ancestors'));
+    }
+
+    public function trash(): Response
+    {
+        $files = File::onlyTrashed()
+            ->where('created_by', Auth::id())
+            ->orderBy('is_folder', 'Desc')
+            ->orderBy('deleted_at', 'Desc')
+            ->distinct()
+            ->paginate(100);
+        $files = FileResource::collection($files);
+        return Inertia::render('Trash', compact('files'));
+    }
+
+    public function restore(TrashFilesRequest $request): RedirectResponse
+    {
+        $data = $request->validated();
+        if ($data['all']) {
+            $children = File::onlyTrashed()
+                ->where('created_by', Auth::id())
+                ->get();
+        }
+        else {
+            $children = File::onlyTrashed()
+                ->whereIn('id', $data['ids'])
+                ->where('created_by', Auth::id())
+                ->get();
+        }
+        foreach ($children as $child) {
+            $child->restore();
+        }
+        return redirect()->back();
+    }
+
+    public function deleteForever(): RedirectResponse
+    {
+
+        return redirect()->back();
     }
 
     public function store(StoreFileRequest $request): void
@@ -141,12 +180,12 @@ class FileController extends Controller
             $children = $parent->children;
 
             foreach ($children as $child) {
-                $child->delete();
+                $child->moveToTrash();
             }
         } else {
             foreach ($data['ids'] ?? [] as $id) {
                 $file = File::find($id);
-                if ($file) $file->delete();
+                if ($file) $file->moveToTrash();
             }
         }
 
@@ -239,8 +278,7 @@ class FileController extends Controller
         foreach ($files as $file) {
             if ($file->is_folder) {
                 $this->addFilesToZip($zip, $file->children, $ancesstors . $file->name . '/');
-            }
-            else {
+            } else {
                 $zip->addFile(Storage::path($file->storage_path), $ancesstors . $file->name);
             }
         }

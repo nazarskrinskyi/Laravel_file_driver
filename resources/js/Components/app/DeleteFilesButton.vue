@@ -1,5 +1,5 @@
 <template>
-    <button @click="onDeleteClick"
+    <button @click="onClick"
             class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-blue-500 dark:focus:text-white">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
              class="w-4 h-4 mr-2">
@@ -8,10 +8,10 @@
         </svg>
         Delete
     </button>
-    <ConfirmationModal :show="showDeleteDialog"
+    <ConfirmationModal :show="showConfirmDialog"
                        message="Are you sure you want to delete selected files?"
-                       @cancel="onDeleteCancel"
-                       @confirm="onDeleteConfirm">
+                       @cancel="onConfirmCancel"
+                       @confirm="onConfirmConfirm">
 
     </ConfirmationModal>
 </template>
@@ -31,7 +31,7 @@ const deleteFilesForm = useForm({
     parent_id: null
 });
 // Refs
-const showDeleteDialog = ref(false)
+const showConfirmDialog = ref(false)
 
 // Props & Emit
 
@@ -46,34 +46,37 @@ const props = defineProps({
         required: false
     }
 })
+
 const emit = defineEmits(['delete'])
 
 // Computed
 
 // Methods
 
-function onDeleteClick() {
+function onClick() {
     if (!props.deleteIds.length && !props.deleteAll) {
         showErrorMessage("You didn't selected any files or folders");
         return;
     }
-    showDeleteDialog.value = true;
+    showConfirmDialog.value = true;
 }
 
-function onDeleteCancel() {
-    showDeleteDialog.value = false;
+function onConfirmCancel() {
+    showConfirmDialog.value = false;
 }
 
-function onDeleteConfirm() {
+function onConfirmConfirm() {
     deleteFilesForm.parent_id = page.props.folder.id;
     if (props.deleteAll) deleteFilesForm.all = true;
     else deleteFilesForm.ids = props.deleteIds;
     console.log("Delete", props.deleteAll, props.deleteIds);
+
     deleteFilesForm.delete(route('file.delete'), {
         onSuccess: () => {
-            showDeleteDialog.value = false;
+            showConfirmDialog.value = false;
             deleteFilesForm.reset();
             showSuccessNotification("You successfully deleted " + props.deleteIds.length + ' files')
+            props.deleteIds = [];
         },
         onError: error => {
             showErrorMessage(error)

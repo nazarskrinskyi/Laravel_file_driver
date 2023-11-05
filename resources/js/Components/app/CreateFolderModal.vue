@@ -40,6 +40,7 @@ import SecondaryButton from "../SecondaryButton.vue";
 import PrimaryButton from "../PrimaryButton.vue";
 import {nextTick, ref} from "vue";
 import Modal from "../Modal.vue";
+import {showErrorNotification, showSuccessNotification} from "../../event-mitt.js";
 
 // Uses
 const form = useForm({
@@ -72,11 +73,14 @@ function createFolder() {
         onSuccess: () => {
             closeModal()
             // Show success notification
+            showSuccessNotification('You successfully created ' + form.name + ' folder')
+
             form.reset();
         },
 
         onError: (error) => {
             console.log(error)
+            showErrorNotification(error)
         }
 
     })
