@@ -7,3 +7,4 @@ export function httpGet(url) {
         }
     }).then(response => response.json())
 }
+

@@ -6,7 +6,7 @@
         Restore
     </SecondaryButton>
     <ConfirmationModal :show="showConfirmDialog"
-                       message="Are you sure you want to delete selected files?"
+                       message="Are you sure you want to restore selected files?"
                        @cancel="onConfirmCancel"
                        @confirm="onConfirmConfirm">
 
@@ -69,10 +69,9 @@ function onConfirmConfirm() {
 
     restoreFilesForm.post(route('file.restore'), {
         onSuccess: () => {
-            showConfirmDialog.value = false;
-            restoreFilesForm.reset();
-            showSuccessNotification("You successfully restored " + props.restoreIds.length + ' files')
-            props.restoreIds = [];
+            showConfirmDialog.value = false
+            emit('restore')
+            showSuccessNotification('Selected files have been restored')
         },
         onError: error => {
             showErrorMessage(error)

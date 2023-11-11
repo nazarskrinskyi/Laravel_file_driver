@@ -2,15 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\addToFavoritesRequest;
 use App\Http\Requests\FilesActionRequest;
 use App\Http\Requests\StoreFileRequest;
 use App\Http\Requests\StoreFolderRequest;
 use App\Http\Requests\TrashFilesRequest;
 use App\Http\Resources\FileResource;
 use App\Models\File;
+use App\Models\StarredFile;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Http\Resources\Json\ResourceCollection;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -29,7 +34,9 @@ class FileController extends Controller
                 ->where('path', '=', $folder)
                 ->firstOrFail();
         } // if not just getting root
-        else $folder = $this->getRoot();
+        else {
+            $folder = $this->getRoot();
+        }
 
         // getting files by user and parent dir
         $files = File::query()
@@ -37,8 +44,8 @@ class FileController extends Controller
             ->where('created_by', '=', Auth::id())
             ->where('deleted_at', '=', null)
             ->orderBy('is_folder', 'desc')
-            ->orderBy('id', 'desc')
-            ->paginate(20);
+            ->with('starred')
+            ->paginate(15);
 
         // correctly passing files by resource
         $files = FileResource::collection($files);
@@ -72,8 +79,7 @@ class FileController extends Controller
             $children = File::onlyTrashed()
                 ->where('created_by', Auth::id())
                 ->get();
-        }
-        else {
+        } else {
             $children = File::onlyTrashed()
                 ->whereIn('id', $data['ids'])
                 ->where('created_by', Auth::id())
@@ -85,9 +91,22 @@ class FileController extends Controller
         return redirect()->back();
     }
 
-    public function deleteForever(): RedirectResponse
+    public function deleteForever(TrashFilesRequest $request): RedirectResponse
     {
-
+        $data = $request->validated();
+        if ($data['all']) {
+            $children = File::onlyTrashed()
+                ->where('created_by', Auth::id())
+                ->get();
+        } else {
+            $children = File::onlyTrashed()
+                ->whereIn('id', $data['ids'])
+                ->where('created_by', Auth::id())
+                ->get();
+        }
+        foreach ($children as $child) {
+            $child->deleteForever();
+        }
         return redirect()->back();
     }
 
@@ -159,7 +178,6 @@ class FileController extends Controller
 
         // adding to file system in db (nested set model package feature)
         $parent->appendNode($file);
-
     }
 
     public function getRoot()
@@ -185,7 +203,9 @@ class FileController extends Controller
         } else {
             foreach ($data['ids'] ?? [] as $id) {
                 $file = File::find($id);
-                if ($file) $file->moveToTrash();
+                if ($file) {
+                    $file->moveToTrash();
+                }
             }
         }
 
@@ -234,7 +254,6 @@ class FileController extends Controller
 
                     $url = asset(Storage::url($dest));
                     $file_name = $file->name;
-
                 }
             } else {
                 $files = File::query()->whereIn('id', $ids)->get();
@@ -269,7 +288,6 @@ class FileController extends Controller
         $zip->close();
 
         return asset(Storage::url($zipPath));
-
     }
 
 
@@ -282,6 +300,33 @@ class FileController extends Controller
                 $zip->addFile(Storage::path($file->storage_path), $ancesstors . $file->name);
             }
         }
+    }
+
+    public function addToFavorites(addToFavoritesRequest $request): RedirectResponse
+    {
+        // getting data from request
+        $data = $request->validated();
+
+        $file = File::find($data['id']);
+
+        $starredFile = StarredFile::query()
+            ->where('file_id', $file->id)
+            ->where('user_id', Auth::id())
+            ->first();
+
+        if ($starredFile) $starredFile->delete();
+        else {
+            $data = [
+                'file_id' => $file->id,
+                'user_id' => Auth::id(),
+                'created_at' => Carbon::now(),
+            ];
+            StarredFile::create($data);
+        }
+
+
+
+        return redirect()->back();
     }
 
 

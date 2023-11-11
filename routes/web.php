@@ -35,9 +35,10 @@ Route::group(['middleware' => ['auth', 'verified']], function () {
         ->name('myFiles');
     Route::post('/folder/create', [FileController::class, 'createFolder'])->name('folder.create');
     Route::post('/file', [FileController::class, 'store'])->name('file.store');
+    Route::post('/file/add-favorite', [FileController::class, 'addToFavorites'])->name('file.add-favorites');
     Route::post('/file/restore', [FileController::class, 'restore'])->name('file.restore');
     Route::delete('/file', [FileController::class, 'destroy'])->name('file.delete');
-    Route::delete('/file/forever', [FileController::class, 'deleteForever'])->name('file.delete-forever');
+    Route::delete('/file/delete-forever', [FileController::class, 'deleteForever'])->name('file.delete-forever');
     Route::get('/file/download', [FileController::class, 'download'])->name('file.download');
     Route::get('/trash', [FileController::class, 'trash'])->name('trash');
 });

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -25,10 +26,14 @@ use Kalnoy\Nestedset\NodeTrait;
  * @property string $name
  * @property mixed $mime
  * @method static find(mixed $parentId)
+ * @method static findOrFail()
  */
 class File extends Model
 {
-    use HasFactory, HasCreatorAndUpdater, NodeTrait, SoftDeletes;
+    use HasCreatorAndUpdater;
+    use HasFactory;
+    use NodeTrait;
+    use SoftDeletes;
 
     protected $table = 'files';
     protected $guarded = false;
@@ -49,6 +54,12 @@ class File extends Model
         return Attribute::make(get: function () {
             return $this->attributes['created_by'] === Auth::id() ? 'me' : $this->user->name;
         });
+    }
+
+    public function starred(): hasOne
+    {
+        return $this->hasOne(StarredFile::class, 'file_id', 'id')
+            ->where('user_id', Auth::id());
     }
 
     public function parent(): BelongsTo
@@ -102,6 +113,25 @@ class File extends Model
         return $this->save();
 
     }
+    public function deleteForever(): void
+    {
+        $this->deleteFilesFromStorage([$this]);
+        $this->forceDelete();
+
+    }
+
+    private function deleteFilesFromStorage($files): void
+    {
+        foreach ($files as $file) {
+            if ($file->is_folder){
+                $this->deleteFilesFromStorage($file->children);
+            }
+            else {
+                Storage::delete($file->storage_path);
+            }
+        }
+    }
+
 
     public function isRoot(): bool
     {

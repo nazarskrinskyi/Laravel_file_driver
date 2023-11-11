@@ -50,7 +50,6 @@ import {emitter, FILE_UPLOAD_STARTED, showErrorMessage, showSuccessNotification,
 import {useForm, usePage} from "@inertiajs/vue3";
 import ProgressBar from "../Components/app/ProgressBar.vue";
 import ErrorMessageModal from "../Components/app/ErrorMessageModal.vue";
-import ConfirmationModal from "../Components/app/ConfirmationModal.vue";
 import Notification from "../Components/app/Notification.vue";
 
 
